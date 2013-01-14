@@ -14,139 +14,100 @@
 (function( $, undefined ) {
 
 $.effects.effect.puff = function( o, done ) {
-	var elem = $( this ),
-		mode = $.effects.setMode( elem, o.mode || "hide" ),
-		hide = mode === "hide",
-		percent = parseInt( o.percent, 10 ) || 150,
-		factor = percent / 100,
-		original = {
-			height: elem.height(),
-			width: elem.width(),
-			outerHeight: elem.outerHeight(),
-			outerWidth: elem.outerWidth()
-		};
-
-	$.extend( o, {
-		effect: "scale",
-		queue: false,
+	var options = {
 		fade: true,
-		mode: mode,
-		complete: done,
-		percent: hide ? percent : 100,
-		from: hide ?
-			original :
-			{
-				height: original.height * factor,
-				width: original.width * factor,
-				outerHeight: original.outerHeight * factor,
-				outerWidth: original.outerWidth * factor
-			}
-	});
+		percent: parseInt( o.percent, 10 ) || 150
+	};
 
-	elem.effect( o );
+	$.effects.effect.scale.call( this, options, done );
 };
 
 $.effects.effect.scale = function( o, done ) {
 
 	// Create element
-	var el = $( this ),
-		options = $.extend( true, {}, o ),
-		mode = $.effects.setMode( el, o.mode || "effect" ),
-		percent = parseInt( o.percent, 10 ) ||
-			( parseInt( o.percent, 10 ) === 0 ? 0 : ( mode === "hide" ? 0 : 100 ) ),
-		direction = o.direction || "both",
-		origin = o.origin,
-		original = {
-			height: el.height(),
-			width: el.width(),
-			outerHeight: el.outerHeight(),
-			outerWidth: el.outerWidth()
-		},
-		factor = {
-			y: direction !== "horizontal" ? (percent / 100) : 1,
-			x: direction !== "vertical" ? (percent / 100) : 1
-		};
-
-	// We are going to pass this effect to the size effect:
-	options.effect = "size";
-	options.queue = false;
-	options.complete = done;
-
-	// Set default origin and restore for show/hide
-	if ( mode !== "effect" ) {
-		options.origin = origin || ["middle","center"];
-		options.restore = true;
-	}
-
-	options.from = o.from || ( mode === "show" ? {
-		height: 0,
-		width: 0,
-		outerHeight: 0,
-		outerWidth: 0
-	} : original );
-	options.to = {
-		height: original.height * factor.y,
-		width: original.width * factor.x,
-		outerHeight: original.outerHeight * factor.y,
-		outerWidth: original.outerWidth * factor.x
-	};
-
-	// Fade option to support puff
-	if ( options.fade ) {
-		if ( mode === "show" ) {
-			options.from.opacity = 0;
-			options.to.opacity = 1;
-		}
-		if ( mode === "hide" ) {
-			options.from.opacity = 1;
-			options.to.opacity = 0;
-		}
-	}
-
-	// Animate
-	el.effect( options );
-
-};
-
-$.effects.effect.size = function( o, done ) {
-
-	// Create element
-	var original, baseline, factor,
+	var temp,
 		el = $( this ),
-		props0 = [ "position", "top", "bottom", "left", "right", "width", "height", "overflow", "opacity" ],
+		mode = $.effects.effectsMode( el ),
 
-		// Always restore
-		props1 = [ "position", "top", "bottom", "left", "right", "overflow", "opacity" ],
+		// this copies the "scale" option, which is normalized in $.effects.effect.size
+		// and the "fade" option, which isn't documented, but supports $.effects.effect.puff
+		options = $.extend( true, {}, o ),
 
-		// Copy for children
-		props2 = [ "width", "height", "overflow" ],
-		cProps = [ "fontSize" ],
-		vProps = [ "borderTopWidth", "borderBottomWidth", "paddingTop", "paddingBottom" ],
-		hProps = [ "borderLeftWidth", "borderRightWidth", "paddingLeft", "paddingRight" ],
-
-		// Set options
-		mode = $.effects.setMode( el, o.mode || "effect" ),
-		restore = o.restore || mode !== "effect",
-		scale = o.scale || "both",
-		origin = o.origin || [ "middle", "center" ],
-		position = el.css( "position" ),
-		props = restore ? props0 : props1,
-		zero = {
-			height: 0,
-			width: 0,
-			outerHeight: 0,
-			outerWidth: 0
+		percent = parseInt( o.percent, 10 ) ||
+			( parseInt( o.percent, 10 ) === 0 ? 0 : ( mode !== "effect" ? 0 : 100 ) ),
+		direction = o.direction || "both",
+		factor = {
+			y: direction !== "horizontal" ? ( percent / 100 ) : 1,
+			x: direction !== "vertical" ? ( percent / 100 ) : 1
 		};
 
-	if ( mode === "show" ) {
-		el.show();
-	}
-	original = {
+	options.from = {
 		height: el.height(),
 		width: el.width(),
 		outerHeight: el.outerHeight(),
 		outerWidth: el.outerWidth()
 	};
+	options.to = {
+		height: options.from.height * factor.y,
+		width: options.from.width * factor.x,
+		outerHeight: options.from.outerHeight * factor.y,
+		outerWidth: options.from.outerWidth * factor.x
+	};
+
+	// Set default origin and restore for show/hide
+	if ( mode !== "effect" ) {
+		options.origin = o.origin || [ "middle", "center" ];
+		options.restore = true;
+
+		// Fade option to support puff
+		if ( options.fade ) {
+			options.from.opacity = 1;
+			options.to.opacity = 0;
+		}
+	}
+
+	if ( mode === "show" ) {
+		temp = options.from;
+		options.from = options.to;
+		options.to = temp;
+	}
+
+	$.effects.effect.size.call( this, options, done );
+};
+
+$.effects.effect.size = function( o, done ) {
+
+	// Create element
+	var baseline, factor,
+		el = $( this ),
+
+		// Copy for children
+		cProps = [ "fontSize" ],
+		vProps = [ "borderTopWidth", "borderBottomWidth", "paddingTop", "paddingBottom" ],
+		hProps = [ "borderLeftWidth", "borderRightWidth", "paddingLeft", "paddingRight" ],
+
+		// Set options
+		mode = $.effects.effectsMode( el ),
+		restore = o.restore || mode !== "effect",
+		scale = o.scale || "both",
+		origin = o.origin || [ "top", "left" ],
+		position = el.css( "position" ),
+		pos = el.position(),
+		zero = {
+			height: 0,
+			width: 0,
+			outerHeight: 0,
+			outerWidth: 0
+		},
+
+		placeholder = $.effects.createPlaceholder( el ),
+
+		original = {
+			height: el.height(),
+			width: el.width(),
+			outerHeight: el.outerHeight(),
+			outerWidth: el.outerWidth()
+		};
 
 	if ( o.mode === "toggle" && mode === "show" ) {
 		el.from = o.to || zero;
@@ -173,14 +134,12 @@ $.effects.effect.size = function( o, done ) {
 
 		// Vertical props scaling
 		if ( factor.from.y !== factor.to.y ) {
-			props = props.concat( vProps );
 			el.from = $.effects.setTransition( el, vProps, factor.from.y, el.from );
 			el.to = $.effects.setTransition( el, vProps, factor.to.y, el.to );
 		}
 
 		// Horizontal props scaling
 		if ( factor.from.x !== factor.to.x ) {
-			props = props.concat( hProps );
 			el.from = $.effects.setTransition( el, hProps, factor.from.x, el.from );
 			el.to = $.effects.setTransition( el, hProps, factor.to.x, el.to );
 		}
@@ -191,35 +150,29 @@ $.effects.effect.size = function( o, done ) {
 
 		// Vertical props scaling
 		if ( factor.from.y !== factor.to.y ) {
-			props = props.concat( cProps ).concat( props2 );
 			el.from = $.effects.setTransition( el, cProps, factor.from.y, el.from );
 			el.to = $.effects.setTransition( el, cProps, factor.to.y, el.to );
 		}
 	}
 
-	$.effects.save( el, props );
-	el.show();
-	$.effects.createWrapper( el );
-	el.css( "overflow", "hidden" ).css( el.from );
-
-	// Adjust
-	if (origin) { // Calculate baseline shifts
+	// Adjust the position properties based on the provided origin points
+	if ( origin ) {
 		baseline = $.effects.getBaseline( origin, original );
-		el.from.top = ( original.outerHeight - el.outerHeight() ) * baseline.y;
-		el.from.left = ( original.outerWidth - el.outerWidth() ) * baseline.x;
-		el.to.top = ( original.outerHeight - el.to.outerHeight ) * baseline.y;
-		el.to.left = ( original.outerWidth - el.to.outerWidth ) * baseline.x;
+		el.from.top = ( original.outerHeight - el.from.outerHeight ) * baseline.y + pos.top;
+		el.from.left = ( original.outerWidth - el.from.outerWidth ) * baseline.x + pos.left;
+		el.to.top = ( original.outerHeight - el.to.outerHeight ) * baseline.y + pos.top;
+		el.to.left = ( original.outerWidth - el.to.outerWidth ) * baseline.x + pos.left;
 	}
-	el.css( el.from ); // set top & left
+	el.css( el.from );
 
-	// Animate
-	if ( scale === "content" || scale === "both" ) { // Scale the children
+	// Animate the children if desired
+	if ( scale === "content" || scale === "both" ) {
 
-		// Add margins/font-size
-		vProps = vProps.concat([ "marginTop", "marginBottom" ]).concat(cProps);
+		vProps = vProps.concat([ "marginTop", "marginBottom" ]).concat( cProps );
 		hProps = hProps.concat([ "marginLeft", "marginRight" ]);
-		props2 = props0.concat(vProps).concat(hProps);
 
+		// only animate children with width attributes specified
+		// TODO: is this right? should we include anything with css width specified as well
 		el.find( "*[width]" ).each( function(){
 			var child = $( this ),
 				c_original = {
@@ -229,7 +182,7 @@ $.effects.effect.size = function( o, done ) {
 					outerWidth: child.outerWidth()
 				};
 			if (restore) {
-				$.effects.save(child, props2);
+				$.effects.saveStyle( child );
 			}
 
 			child.from = {
@@ -263,7 +216,7 @@ $.effects.effect.size = function( o, done ) {
 
 				// Restore children
 				if ( restore ) {
-					$.effects.restore( child, props2 );
+					$.effects.restoreStyle( child );
 				}
 			});
 		});
@@ -275,13 +228,15 @@ $.effects.effect.size = function( o, done ) {
 		duration: o.duration,
 		easing: o.easing,
 		complete: function() {
+			$.effects.removePlaceholder( placeholder, el );
+
 			if ( el.to.opacity === 0 ) {
 				el.css( "opacity", el.from.opacity );
 			}
 			if( mode === "hide" ) {
 				el.hide();
 			}
-			$.effects.restore( el, props );
+
 			if ( !restore ) {
 
 				// we need to calculate our new positioning based on the scaling
@@ -308,7 +263,6 @@ $.effects.effect.size = function( o, done ) {
 				}
 			}
 
-			$.effects.removeWrapper( el );
 			done();
 		}
 	});

@@ -16,20 +16,20 @@
 $.effects.effect.transfer = function( o, done ) {
 	var elem = $( this ),
 		target = $( o.to ),
-		targetFixed = target.css( "position" ) === "fixed",
+		targetFixed = target.css("position") === "fixed",
 		body = $("body"),
 		fixTop = targetFixed ? body.scrollTop() : 0,
 		fixLeft = targetFixed ? body.scrollLeft() : 0,
 		endPosition = target.offset(),
 		animation = {
-			top: endPosition.top - fixTop ,
-			left: endPosition.left - fixLeft ,
+			top: endPosition.top - fixTop,
+			left: endPosition.left - fixLeft,
 			height: target.innerHeight(),
 			width: target.innerWidth()
 		},
 		startPosition = elem.offset(),
-		transfer = $( "<div class='ui-effects-transfer'></div>" )
-			.appendTo( document.body )
+		transfer = $("<div class='ui-effects-transfer'></div>")
+			.appendTo("body")
 			.addClass( o.className )
 			.css({
 				top: startPosition.top - fixTop ,

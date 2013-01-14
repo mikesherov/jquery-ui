@@ -13,9 +13,11 @@
  */
 (function( $, undefined ) {
 
+$.effects.defaultMode.fade = "toggle";
+
 $.effects.effect.fade = function( o, done ) {
 	var el = $( this ),
-		mode = $.effects.setMode( el, o.mode || "toggle" );
+		mode = $.effects.effectsMode( el );
 
 	el.animate({
 		opacity: mode

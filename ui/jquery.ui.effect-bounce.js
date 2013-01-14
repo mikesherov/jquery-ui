@@ -14,11 +14,11 @@
 (function( $, undefined ) {
 
 $.effects.effect.bounce = function( o, done ) {
-	var el = $( this ),
-		props = [ "position", "top", "bottom", "left", "right", "height", "width" ],
+	var upAnim, downAnim,
+		el = $( this ),
 
 		// defaults:
-		mode = $.effects.setMode( el, o.mode || "effect" ),
+		mode = $.effects.effectsMode( el ),
 		hide = mode === "hide",
 		show = mode === "show",
 		direction = o.direction || "up",
@@ -33,22 +33,14 @@ $.effects.effect.bounce = function( o, done ) {
 		// utility:
 		ref = ( direction === "up" || direction === "down" ) ? "top" : "left",
 		motion = ( direction === "up" || direction === "left" ),
-		i,
-		upAnim,
-		downAnim,
+		i = 0,
 
 		// we will need to re-assemble the queue to stack our animations in place
 		queue = el.queue(),
-		queuelen = queue.length;
+		queuelen = queue.length,
 
-	// Avoid touching opacity to prevent clearType and PNG issues in IE
-	if ( show || hide ) {
-		props.push( "opacity" );
-	}
-
-	$.effects.save( el, props );
-	el.show();
-	$.effects.createWrapper( el ); // Create Wrapper
+		placeholder = $.effects.createPlaceholder( el ),
+		refValue = el.css( ref );
 
 	// default distance for the BIGGEST bounce is the outer Distance / 3
 	if ( !distance ) {
@@ -57,7 +49,7 @@ $.effects.effect.bounce = function( o, done ) {
 
 	if ( show ) {
 		downAnim = { opacity: 1 };
-		downAnim[ ref ] = 0;
+		downAnim[ ref ] = refValue;
 
 		// if we are showing, force opacity 0 and set the initial position
 		// then do the "first" animation
@@ -72,9 +64,9 @@ $.effects.effect.bounce = function( o, done ) {
 	}
 
 	downAnim = {};
-	downAnim[ ref ] = 0;
+	downAnim[ ref ] = refValue;
 	// Bounces up/down/left/right then back to 0 -- times * 2 animations happen here
-	for ( i = 0; i < times; i++ ) {
+	for ( ; i < times; i++ ) {
 		upAnim = {};
 		upAnim[ ref ] = ( motion ? "-=" : "+=" ) + distance;
 
@@ -93,11 +85,12 @@ $.effects.effect.bounce = function( o, done ) {
 	}
 
 	el.queue(function() {
+		$.effects.removePlaceholder( placeholder, el );
+
 		if ( hide ) {
 			el.hide();
 		}
-		$.effects.restore( el, props );
-		$.effects.removeWrapper( el );
+
 		done();
 	});
 

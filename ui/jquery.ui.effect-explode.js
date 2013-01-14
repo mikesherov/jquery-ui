@@ -13,12 +13,15 @@
  */
 (function( $, undefined ) {
 
+$.effects.defaultMode.explode = "hide";
+
 $.effects.effect.explode = function( o, done ) {
 
-	var rows = o.pieces ? Math.round( Math.sqrt( o.pieces ) ) : 3,
+	var i, j, left, top, mx, my,
+		rows = o.pieces ? Math.round( Math.sqrt( o.pieces ) ) : 3,
 		cells = rows,
 		el = $( this ),
-		mode = $.effects.setMode( el, o.mode || "hide" ),
+		mode = $.effects.effectsMode( el ),
 		show = mode === "show",
 
 		// show and then visibility:hidden the element before calculating offset
@@ -27,10 +30,7 @@ $.effects.effect.explode = function( o, done ) {
 		// width and height of a piece
 		width = Math.ceil( el.outerWidth() / cells ),
 		height = Math.ceil( el.outerHeight() / rows ),
-		pieces = [],
-
-		// loop
-		i, j, left, top, mx, my;
+		pieces = [];
 
 	// children animate complete:
 	function childComplete() {

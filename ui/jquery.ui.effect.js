@@ -13,7 +13,8 @@
 var dataSpace = "ui-effects-";
 
 $.effects = {
-	effect: {}
+	effect: {},
+	defaultMode: {}
 };
 
 /*!
@@ -923,11 +924,34 @@ $.extend( $.effects, {
 		}
 	},
 
+	saveStyle: function( element ) {
+		element.data( dataSpace + "style", element[ 0 ].style.cssText );
+	},
+
+	restoreStyle: function( element ) {
+		element[ 0 ].style.cssText = element.data( dataSpace + "style" );
+	},
+
 	setMode: function( el, mode ) {
 		if (mode === "toggle") {
 			mode = el.is( ":hidden" ) ? "show" : "hide";
 		}
 		return mode;
+	},
+
+	effectsMode: function( el, mode ) {
+		var dataKey = dataSpace + "mode";
+
+		if ( mode ) {
+			mode = $.effects.setMode( el, mode );
+			if ( el.is( ":hidden" ) ? mode === "hide" : mode === "show" ) {
+				mode = "none";
+			}
+			el.data( dataKey, mode );
+			return mode;
+		}
+
+		return el.data( dataKey );
 	},
 
 	// Translates a [top,left] array into a baseline value
@@ -953,16 +977,66 @@ $.extend( $.effects, {
 	},
 
 	// Creates a placeholder element so that the original element can be made absolute
+	// also stores all modified properties on the element so they can be restored later
 	createPlaceholder: function( element ) {
-		if ( /^(static|relative)/.test( element.css("position") ) ) {
 
-			return $("<div>").css({
+		var placeholder,
+			cssPosition = element.css("position"),
+			position = element.position();
+
+		// lock in parent dimensions to account for margin-collapse on children
+		// changing visual height/width of the container
+		element.parent()
+			.outerWidth( element.parent().outerWidth( true ), true )
+			.outerHeight( element.parent().outerHeight( true ), true );
+
+		// lock in margins first to account for form elements, which
+		// will change margin if you explicitly set height
+		// see: http://jsfiddle.net/JZSMt/3/ https://bugs.webkit.org/show_bug.cgi?id=107380
+		// Support: Chrome
+		element.css({
+			marginTop: element.css("marginTop"),
+			marginBottom: element.css("marginBottom"),
+			marginLeft: element.css("marginLeft"),
+			marginRight: element.css("marginRight")
+		})
+		.outerWidth( element.outerWidth() )
+		.outerHeight( element.outerHeight() );
+
+		if ( /^(static|relative)/.test( cssPosition ) ) {
+			cssPosition = "absolute";
+
+			placeholder = $("<div>").css({
 				display: /^(inline|ruby)/.test( element.css("display") ) ? "inline-block" : "block",
-				visibility: "hidden"
+				visibility: "hidden",
+				// margins need to be set to account for margin collapse
+				marginTop: element.css("marginTop"),
+				marginBottom: element.css("marginBottom"),
+				marginLeft: element.css("marginLeft"),
+				marginRight: element.css("marginRight")
 			})
-			.outerWidth( element.outerWidth(true), true )
-			.outerHeight( element.outerHeight(true), true )
+			.outerWidth( element.outerWidth() )
+			.outerHeight( element.outerHeight() )
 			.insertAfter( element );
+		}
+
+		element.css({
+			position: cssPosition,
+			left: position.left,
+			top: position.top
+		});
+
+		return placeholder;
+	},
+
+	// removes a placeholder if it exists and restores
+	// properties that were modified during placeholder creation
+	removePlaceholder: function ( placeholder, el ) {
+		$.effects.restoreStyle( el );
+		$.effects.restoreStyle( el.parent() );
+
+		if ( placeholder ) {
+			placeholder.remove();
 		}
 	},
 
@@ -1153,7 +1227,24 @@ $.fn.extend({
 		var args = _normalizeArguments.apply( this, arguments ),
 			mode = args.mode,
 			queue = args.queue,
-			effectMethod = $.effects.effect[ args.effect ];
+			effectMethod = $.effects.effect[ args.effect ],
+			defaultMode = $.effects.defaultMode[ args.effect ],
+			effectPrefilter = function() {
+
+				var el = $( this ),
+					normalizedMode = $.effects.effectsMode( el, mode || defaultMode || "effect" );
+
+				if ( normalizedMode === "none" ) {
+					return;
+				}
+
+				if ( normalizedMode === "show" ) {
+					el.show();
+				}
+
+				$.effects.saveStyle( el );
+				$.effects.saveStyle( el.parent() );
+			};
 
 		if ( $.fx.off || !effectMethod ) {
 			// delegate to the original method (e.g., .show()) if possible
@@ -1169,13 +1260,11 @@ $.fn.extend({
 		}
 
 		function run( next ) {
-			var elem = $( this ),
-				complete = args.complete,
-				mode = args.mode;
+			var elem = $( this );
 
 			function done() {
-				if ( $.isFunction( complete ) ) {
-					complete.call( elem[0] );
+				if ( $.isFunction( args.complete ) ) {
+					args.complete.call( elem[0] );
 				}
 				if ( $.isFunction( next ) ) {
 					next();
@@ -1184,7 +1273,7 @@ $.fn.extend({
 
 			// If the element already has the correct final state, delegate to
 			// the core methods so the internal tracking of "olddisplay" works.
-			if ( elem.is( ":hidden" ) ? mode === "hide" : mode === "show" ) {
+			if ( $.effects.effectsMode( elem ) === "none" ) {
 				elem[ mode ]();
 				done();
 			} else {
@@ -1192,7 +1281,16 @@ $.fn.extend({
 			}
 		}
 
-		return queue === false ? this.each( run ) : this.queue( queue || "fx", run );
+		function prefilter( next ) {
+			effectPrefilter.call( this );
+			if ( $.isFunction( next ) ) {
+				next();
+			}
+		}
+
+		return queue === false ?
+			this.each( prefilter ).each( run ) :
+			this.queue( queue || "fx", prefilter ).queue( queue || "fx", run );
 	},
 
 	show: (function( orig ) {
@@ -1242,8 +1340,46 @@ $.fn.extend({
 			}
 		});
 		return val;
+	},
+
+	// getter/setter for an object representing clip values
+	cssClip: function( clipObj ) {
+		return clipObj ?
+			this.css( "clip", "rect(" + clipObj.top + "px " + clipObj.right + "px " + clipObj.bottom + "px " + clipObj.left + "px)" ) :
+			parseClip( this.css("clip"), this );
 	}
 });
+
+function parseClip( str, element ) {
+		var outerWidth = element.outerWidth(),
+			outerHeight = element.outerHeight(),
+			clipRegex = /^rect\((-?\d*\.?\d*px|-?\d+%|auto),?\s+(-?\d*\.?\d*px|-?\d+%|auto),?\s+(-?\d*\.?\d*px|-?\d+%|auto),?\s+(-?\d*\.?\d*px|-?\d+%|auto)\)$/,
+			values = clipRegex.exec( str ) || [ "", 0, outerWidth, outerHeight, 0 ];
+
+		return {
+			top: parseFloat( values[ 1 ] ) || 0 ,
+			right: values[ 2 ] === "auto" ? outerWidth : parseFloat( values[ 2 ] ),
+			bottom: values[ 3 ] === "auto" ? outerHeight : parseFloat( values[ 3 ] ),
+			left: parseFloat( values[ 4 ] ) || 0
+		};
+}
+
+$.fx.step.clip = function( fx ) {
+	if ( !fx.clipInit ) {
+		fx.start = $( fx.elem ).cssClip();
+		if ( typeof fx.end === "string" ) {
+			fx.end = parseClip( fx.end, fx.elem );
+		}
+		fx.clipInit = true;
+	}
+
+	$( fx.elem ).cssClip({
+		top: fx.pos * (fx.end.top - fx.start.top) + fx.start.top,
+		right: fx.pos * (fx.end.right - fx.start.right) + fx.start.right,
+		bottom: fx.pos * (fx.end.bottom - fx.start.bottom) + fx.start.bottom,
+		left: fx.pos * (fx.end.left - fx.start.left) + fx.start.left
+	});
+};
 
 })();
 
