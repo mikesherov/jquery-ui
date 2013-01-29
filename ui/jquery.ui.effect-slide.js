@@ -24,7 +24,7 @@ $.effects.effect.slide = function( o, done ) {
 			left: [ "right", "left" ],
 			right: [ "left", "right" ]
 		},
-		mode = $.effects.effectsMode( el ),
+		mode = $.effects.mode( el ),
 		direction = o.direction || "left",
 		ref = ( direction === "up" || direction === "down" ) ? "top" : "left",
 		positiveMotion = ( direction === "up" || direction === "left" ),

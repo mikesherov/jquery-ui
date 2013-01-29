@@ -19,7 +19,7 @@ $.effects.effect.fold = function( o, done ) {
 
 	// Create element
 	var el = $( this ),
-		mode = $.effects.effectsMode( el ),
+		mode = $.effects.mode( el ),
 		show = mode === "show",
 		hide = mode === "hide",
 		size = o.size || 15,

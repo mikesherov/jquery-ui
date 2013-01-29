@@ -27,7 +27,7 @@ $.effects.effect.blind = function( o, done ) {
 			right: [ "left", "right" ]
 		},
 		el = $( this ),
-		show = $.effects.effectsMode( el ) === "show",
+		show = $.effects.mode( el ) === "show",
 		direction = o.direction || "up";
 
 	start = el.cssClip();

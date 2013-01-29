@@ -19,7 +19,7 @@ $.effects.effect.clip = function( o, done ) {
 	var start, placeholder,
 		animate = {},
 		el = $( this ),
-		show = $.effects.effectsMode( el ) === "show",
+		show = $.effects.mode( el ) === "show",
 		direction = o.direction || "vertical",
 		both = direction === "both",
 		horizontal = both || direction === "horizontal",

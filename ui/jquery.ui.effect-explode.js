@@ -21,7 +21,7 @@ $.effects.effect.explode = function( o, done ) {
 		rows = o.pieces ? Math.round( Math.sqrt( o.pieces ) ) : 3,
 		cells = rows,
 		el = $( this ),
-		mode = $.effects.effectsMode( el ),
+		mode = $.effects.mode( el ),
 		show = mode === "show",
 
 		// show and then visibility:hidden the element before calculating offset

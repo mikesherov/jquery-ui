@@ -17,7 +17,7 @@ $.effects.defaultMode.highlight = "show";
 
 $.effects.effect.highlight = function( o, done ) {
 	var elem = $( this ),
-		mode = $.effects.effectsMode( elem ),
+		mode = $.effects.mode( elem ),
 		animation = {
 			backgroundColor: elem.css("backgroundColor")
 		};

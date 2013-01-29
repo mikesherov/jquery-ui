@@ -18,7 +18,7 @@ $.effects.defaultMode.drop = "hide";
 $.effects.effect.drop = function( o, done ) {
 
 	var el = $( this ),
-		mode = $.effects.effectsMode( el ),
+		mode = $.effects.mode( el ),
 		show = mode === "show",
 		direction = o.direction || "left",
 		ref = ( direction === "up" || direction === "down" ) ? "top" : "left",

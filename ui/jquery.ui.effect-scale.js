@@ -27,7 +27,7 @@ $.effects.effect.scale = function( o, done ) {
 	// Create element
 	var temp,
 		el = $( this ),
-		mode = $.effects.effectsMode( el ),
+		mode = $.effects.mode( el ),
 
 		// this copies the "scale" option, which is normalized in $.effects.effect.size
 		// and the "fade" option, which isn't documented, but supports $.effects.effect.puff
@@ -87,7 +87,7 @@ $.effects.effect.size = function( o, done ) {
 		hProps = [ "borderLeftWidth", "borderRightWidth", "paddingLeft", "paddingRight" ],
 
 		// Set options
-		mode = $.effects.effectsMode( el ),
+		mode = $.effects.mode( el ),
 		restore = o.restore || mode !== "effect",
 		scale = o.scale || "both",
 		origin = o.origin || [ "top", "left" ],

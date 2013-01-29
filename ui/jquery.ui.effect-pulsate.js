@@ -17,7 +17,7 @@ $.effects.defaultMode.pulsate = "show";
 
 $.effects.effect.pulsate = function( o, done ) {
 	var elem = $( this ),
-		mode = $.effects.effectsMode( elem ),
+		mode = $.effects.mode( elem ),
 		show = mode === "show",
 		hide = mode === "hide",
 		showhide = ( show || hide ),

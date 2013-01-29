@@ -896,54 +896,21 @@ $.fn.extend({
 $.extend( $.effects, {
 	version: "@VERSION",
 
-	// Saves a set of properties in a data storage
-	save: function( element, set ) {
-		for( var i=0; i < set.length; i++ ) {
-			if ( set[ i ] !== null ) {
-				element.data( dataSpace + set[ i ], element[ 0 ].style[ set[ i ] ] );
-			}
-		}
-	},
-
-	// Restores a set of previously saved properties from a data storage
-	restore: function( element, set ) {
-		var val, i;
-		for( i=0; i < set.length; i++ ) {
-			if ( set[ i ] !== null ) {
-				val = element.data( dataSpace + set[ i ] );
-				// support: jQuery 1.6.2
-				// http://bugs.jquery.com/ticket/9917
-				// jQuery 1.6.2 incorrectly returns undefined for any falsy value.
-				// We can't differentiate between "" and 0 here, so we just assume
-				// empty string since it's likely to be a more common value...
-				if ( val === undefined ) {
-					val = "";
-				}
-				element.css( set[ i ], val );
-			}
-		}
-	},
-
 	saveStyle: function( element ) {
 		element.data( dataSpace + "style", element[ 0 ].style.cssText );
 	},
 
 	restoreStyle: function( element ) {
-		element[ 0 ].style.cssText = element.data( dataSpace + "style" );
+		element[ 0 ].style.cssText = element.data( dataSpace + "style" ) || "";
 	},
 
-	setMode: function( el, mode ) {
-		if (mode === "toggle") {
-			mode = el.is( ":hidden" ) ? "show" : "hide";
-		}
-		return mode;
-	},
-
-	effectsMode: function( el, mode ) {
+	mode: function( el, mode ) {
 		var dataKey = dataSpace + "mode";
 
 		if ( mode ) {
-			mode = $.effects.setMode( el, mode );
+			if (mode === "toggle") {
+				mode = el.is( ":hidden" ) ? "show" : "hide";
+			}
 			if ( el.is( ":hidden" ) ? mode === "hide" : mode === "show" ) {
 				mode = "none";
 			}
@@ -1038,98 +1005,6 @@ $.extend( $.effects, {
 		if ( placeholder ) {
 			placeholder.remove();
 		}
-	},
-
-	// Wraps the element around a wrapper that copies position properties
-	createWrapper: function( element ) {
-
-		// if the element is already wrapped, return it
-		if ( element.parent().is( ".ui-effects-wrapper" )) {
-			return element.parent();
-		}
-
-		// wrap the element
-		var props = {
-				width: element.outerWidth(true),
-				height: element.outerHeight(true),
-				"float": element.css( "float" )
-			},
-			wrapper = $( "<div></div>" )
-				.addClass( "ui-effects-wrapper" )
-				.css({
-					fontSize: "100%",
-					background: "transparent",
-					border: "none",
-					margin: 0,
-					padding: 0
-				}),
-			// Store the size in case width/height are defined in % - Fixes #5245
-			size = {
-				width: element.width(),
-				height: element.height()
-			},
-			active = document.activeElement;
-
-		// support: Firefox
-		// Firefox incorrectly exposes anonymous content
-		// https://bugzilla.mozilla.org/show_bug.cgi?id=561664
-		try {
-			active.id;
-		} catch( e ) {
-			active = document.body;
-		}
-
-		element.wrap( wrapper );
-
-		// Fixes #7595 - Elements lose focus when wrapped.
-		if ( element[ 0 ] === active || $.contains( element[ 0 ], active ) ) {
-			$( active ).focus();
-		}
-
-		wrapper = element.parent(); //Hotfix for jQuery 1.4 since some change in wrap() seems to actually lose the reference to the wrapped element
-
-		// transfer positioning properties to the wrapper
-		if ( element.css( "position" ) === "static" ) {
-			wrapper.css({ position: "relative" });
-			element.css({ position: "relative" });
-		} else {
-			$.extend( props, {
-				position: element.css( "position" ),
-				zIndex: element.css( "z-index" )
-			});
-			$.each([ "top", "left", "bottom", "right" ], function(i, pos) {
-				props[ pos ] = element.css( pos );
-				if ( isNaN( parseInt( props[ pos ], 10 ) ) ) {
-					props[ pos ] = "auto";
-				}
-			});
-			element.css({
-				position: "relative",
-				top: 0,
-				left: 0,
-				right: "auto",
-				bottom: "auto"
-			});
-		}
-		element.css(size);
-
-		return wrapper.css( props ).show();
-	},
-
-	removeWrapper: function( element ) {
-		var active = document.activeElement;
-
-		if ( element.parent().is( ".ui-effects-wrapper" ) ) {
-			element.parent().replaceWith( element );
-
-			// Fixes #7595 - Elements lose focus when wrapped.
-			if ( element[ 0 ] === active || $.contains( element[ 0 ], active ) ) {
-				$( active ).focus();
-			}
-		}
-
-
-		return element;
 	},
 
 	setTransition: function( element, list, factor, value ) {
@@ -1232,7 +1107,7 @@ $.fn.extend({
 			effectPrefilter = function() {
 
 				var el = $( this ),
-					normalizedMode = $.effects.effectsMode( el, mode || defaultMode || "effect" );
+					normalizedMode = $.effects.mode( el, mode || defaultMode || "effect" );
 
 				if ( normalizedMode === "none" ) {
 					return;
@@ -1273,7 +1148,7 @@ $.fn.extend({
 
 			// If the element already has the correct final state, delegate to
 			// the core methods so the internal tracking of "olddisplay" works.
-			if ( $.effects.effectsMode( elem ) === "none" ) {
+			if ( $.effects.mode( elem ) === "none" ) {
 				elem[ mode ]();
 				done();
 			} else {

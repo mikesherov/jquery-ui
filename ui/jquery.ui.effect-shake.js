@@ -51,7 +51,7 @@ $.effects.effect.shake = function( o, done ) {
 
 			$.effects.removePlaceholder( placeholder, el );
 
-			if ( $.effects.effectsMode( el ) === "hide" ) {
+			if ( $.effects.mode( el ) === "hide" ) {
 				el.hide();
 			}
 

@@ -18,7 +18,7 @@ $.effects.effect.bounce = function( o, done ) {
 		el = $( this ),
 
 		// defaults:
-		mode = $.effects.effectsMode( el ),
+		mode = $.effects.mode( el ),
 		hide = mode === "hide",
 		show = mode === "show",
 		direction = o.direction || "up",
