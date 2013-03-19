@@ -13,13 +13,11 @@
  */
 (function( $, undefined ) {
 
-$.effects.defaultMode.clip = "hide";
-
-$.effects.effect.clip = function( o, done ) {
+$.effects.define( "clip", "hide", function( o, done ) {
 	var start, placeholder,
 		animate = {},
 		el = $( this ),
-		show = $.effects.mode( el ) === "show",
+		show = o.mode === "show",
 		direction = o.direction || "vertical",
 		both = direction === "both",
 		horizontal = both || direction === "horizontal",
@@ -56,6 +54,6 @@ $.effects.effect.clip = function( o, done ) {
 		}
 	});
 
-};
+});
 
 })(jQuery);

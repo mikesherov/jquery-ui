@@ -13,9 +13,7 @@
  */
 (function( $, undefined ) {
 
-$.effects.defaultMode.blind = "hide";
-
-$.effects.effect.blind = function( o, done ) {
+$.effects.define( "blind", "hide", function( o, done ) {
 	var start, placeholder,
 		animate = {},
 		map = {
@@ -27,7 +25,7 @@ $.effects.effect.blind = function( o, done ) {
 			right: [ "left", "right" ]
 		},
 		el = $( this ),
-		show = $.effects.mode( el ) === "show",
+		show = o.mode === "show",
 		direction = o.direction || "up";
 
 	start = el.cssClip();
@@ -57,6 +55,6 @@ $.effects.effect.blind = function( o, done ) {
 		}
 	});
 
-};
+});
 
 })(jQuery);

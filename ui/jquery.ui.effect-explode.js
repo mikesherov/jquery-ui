@@ -13,15 +13,13 @@
  */
 (function( $, undefined ) {
 
-$.effects.defaultMode.explode = "hide";
-
-$.effects.effect.explode = function( o, done ) {
+$.effects.define( "explode", "hide", function( o, done ) {
 
 	var i, j, left, top, mx, my,
 		rows = o.pieces ? Math.round( Math.sqrt( o.pieces ) ) : 3,
 		cells = rows,
 		el = $( this ),
-		mode = $.effects.mode( el ),
+		mode = o.mode,
 		show = mode === "show",
 
 		// show and then visibility:hidden the element before calculating offset
@@ -92,6 +90,6 @@ $.effects.effect.explode = function( o, done ) {
 		}
 		done();
 	}
-};
+});
 
 })(jQuery);

@@ -13,7 +13,7 @@
  */
 (function( $, undefined ) {
 
-$.effects.effect.transfer = function( o, done ) {
+$.effects.define( "transfer", function( o, done ) {
 	var elem = $( this ),
 		target = $( o.to ),
 		targetFixed = target.css("position") === "fixed",
@@ -42,6 +42,6 @@ $.effects.effect.transfer = function( o, done ) {
 				transfer.remove();
 				done();
 			});
-};
+});
 
 })(jQuery);

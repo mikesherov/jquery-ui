@@ -13,20 +13,15 @@
  */
 (function( $, undefined ) {
 
-$.effects.defaultMode.fade = "toggle";
-
-$.effects.effect.fade = function( o, done ) {
-	var el = $( this ),
-		mode = $.effects.mode( el );
-
-	el.animate({
-		opacity: mode
+$.effects.define( "fade", "toggle", function( o, done ) {
+	$( this ).animate({
+		opacity: o.mode
 	}, {
 		queue: false,
 		duration: o.duration,
 		easing: o.easing,
 		complete: done
 	});
-};
+});
 
 })( jQuery );

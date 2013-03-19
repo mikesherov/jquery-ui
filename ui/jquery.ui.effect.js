@@ -13,8 +13,7 @@
 var dataSpace = "ui-effects-";
 
 $.effects = {
-	effect: {},
-	defaultMode: {}
+	effect: {}
 };
 
 /*!
@@ -896,6 +895,16 @@ $.fn.extend({
 $.extend( $.effects, {
 	version: "@VERSION",
 
+	define: function( name, mode, effect ) {
+		if ( !effect ) {
+			effect = mode;
+			mode = "effect";
+		}
+
+		$.effects.effect[ name ] = effect;
+		$.effects.effect[ name ].mode = mode;
+	},
+
 	saveStyle: function( element ) {
 		element.data( dataSpace + "style", element[ 0 ].style.cssText );
 	},
@@ -905,20 +914,15 @@ $.extend( $.effects, {
 	},
 
 	mode: function( el, mode ) {
-		var dataKey = dataSpace + "mode";
+		var hidden = el.is( ":hidden" );
 
-		if ( mode ) {
-			if (mode === "toggle") {
-				mode = el.is( ":hidden" ) ? "show" : "hide";
-			}
-			if ( el.is( ":hidden" ) ? mode === "hide" : mode === "show" ) {
-				mode = "none";
-			}
-			el.data( dataKey, mode );
-			return mode;
+		if ( mode === "toggle" ) {
+			mode = hidden ? "show" : "hide";
 		}
-
-		return el.data( dataKey );
+		if ( hidden ? mode === "hide" : mode === "show" ) {
+			mode = "none";
+		}
+		return mode;
 	},
 
 	// Translates a [top,left] array into a baseline value
@@ -951,12 +955,6 @@ $.extend( $.effects, {
 			cssPosition = element.css("position"),
 			position = element.position();
 
-		// lock in parent dimensions to account for margin-collapse on children
-		// changing visual height/width of the container
-		element.parent()
-			.outerWidth( element.parent().outerWidth( true ), true )
-			.outerHeight( element.parent().outerHeight( true ), true );
-
 		// lock in margins first to account for form elements, which
 		// will change margin if you explicitly set height
 		// see: http://jsfiddle.net/JZSMt/3/ https://bugs.webkit.org/show_bug.cgi?id=107380
@@ -973,18 +971,19 @@ $.extend( $.effects, {
 		if ( /^(static|relative)/.test( cssPosition ) ) {
 			cssPosition = "absolute";
 
-			placeholder = $("<div>").css({
+			placeholder = $( "<" + element[ 0 ].nodeName + ">" ).insertAfter( element ).css({
+				// convert inline to inline block to account for inline elements
+				// that turn to inline block based on content (like img)
 				display: /^(inline|ruby)/.test( element.css("display") ) ? "inline-block" : "block",
 				visibility: "hidden",
 				// margins need to be set to account for margin collapse
-				marginTop: element.css("marginTop"),
-				marginBottom: element.css("marginBottom"),
-				marginLeft: element.css("marginLeft"),
-				marginRight: element.css("marginRight")
+				marginTop: element.css( "marginTop" ),
+				marginBottom: element.css( "marginBottom" ),
+				marginLeft: element.css( "marginLeft" ),
+				marginRight: element.css( "marginRight" )
 			})
 			.outerWidth( element.outerWidth() )
-			.outerHeight( element.outerHeight() )
-			.insertAfter( element );
+			.outerHeight( element.outerHeight() );
 		}
 
 		element.css({
@@ -1000,7 +999,6 @@ $.extend( $.effects, {
 	// properties that were modified during placeholder creation
 	removePlaceholder: function ( placeholder, el ) {
 		$.effects.restoreStyle( el );
-		$.effects.restoreStyle( el.parent() );
 
 		if ( placeholder ) {
 			placeholder.remove();
@@ -1100,14 +1098,18 @@ function standardAnimationOption( option ) {
 $.fn.extend({
 	effect: function( /* effect, options, speed, callback */ ) {
 		var args = _normalizeArguments.apply( this, arguments ),
-			mode = args.mode,
-			queue = args.queue,
 			effectMethod = $.effects.effect[ args.effect ],
-			defaultMode = $.effects.defaultMode[ args.effect ],
+			defaultMode = effectMethod.mode,
+			modes = [],
 			effectPrefilter = function() {
 
 				var el = $( this ),
-					normalizedMode = $.effects.mode( el, mode || defaultMode || "effect" );
+					normalizedMode = $.effects.mode( el, mode );
+
+				// save effect mode for later use,
+				// we can't just call $.effects.mode again later,
+				// as the .show() below destroys the initial state
+				modes.push( normalizedMode );
 
 				if ( normalizedMode === "none" ) {
 					return;
@@ -1118,17 +1120,19 @@ $.fn.extend({
 				}
 
 				$.effects.saveStyle( el );
-				$.effects.saveStyle( el.parent() );
-			};
+			},
+			queue = args.queue,
+			complete = args.complete,
+			mode = args.mode || defaultMode;
 
 		if ( $.fx.off || !effectMethod ) {
 			// delegate to the original method (e.g., .show()) if possible
 			if ( mode ) {
-				return this[ mode ]( args.duration, args.complete );
+				return this[ mode ]( args.duration, complete );
 			} else {
 				return this.each( function() {
-					if ( args.complete ) {
-						args.complete.call( this );
+					if ( complete ) {
+						complete.call( this );
 					}
 				});
 			}
@@ -1138,17 +1142,20 @@ $.fn.extend({
 			var elem = $( this );
 
 			function done() {
-				if ( $.isFunction( args.complete ) ) {
-					args.complete.call( elem[0] );
+				if ( $.isFunction( complete ) ) {
+					complete.call( elem[0] );
 				}
 				if ( $.isFunction( next ) ) {
 					next();
 				}
 			}
 
-			// If the element already has the correct final state, delegate to
-			// the core methods so the internal tracking of "olddisplay" works.
-			if ( $.effects.mode( elem ) === "none" ) {
+			// override mode option on a per element basis,
+			// as toggle can be show, or hide depending on element state
+			args.mode = modes.shift();
+
+			if ( args.mode === "none" ) {
+				// call the core method to track "olddisplay" properly
 				elem[ mode ]();
 				done();
 			} else {

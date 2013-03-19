@@ -13,11 +13,9 @@
  */
 (function( $, undefined ) {
 
-$.effects.defaultMode.highlight = "show";
-
-$.effects.effect.highlight = function( o, done ) {
+$.effects.define( "highlight", "show", function( o, done ) {
 	var elem = $( this ),
-		mode = $.effects.mode( elem ),
+		mode = o.mode,
 		animation = {
 			backgroundColor: elem.css("backgroundColor")
 		};
@@ -47,6 +45,6 @@ $.effects.effect.highlight = function( o, done ) {
 				done();
 			}
 		});
-};
+});
 
 })(jQuery);

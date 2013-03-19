@@ -13,9 +13,7 @@
  */
 (function( $, undefined ) {
 
-$.effects.defaultMode.slide = "show";
-
-$.effects.effect.slide = function( o, done ) {
+$.effects.define( "slide", "show", function( o, done ) {
 
 	var el = $( this ),
 		map = {
@@ -24,7 +22,7 @@ $.effects.effect.slide = function( o, done ) {
 			left: [ "right", "left" ],
 			right: [ "left", "right" ]
 		},
-		mode = $.effects.mode( el ),
+		mode = o.mode,
 		direction = o.direction || "left",
 		ref = ( direction === "up" || direction === "down" ) ? "top" : "left",
 		positiveMotion = ( direction === "up" || direction === "left" ),
@@ -62,6 +60,6 @@ $.effects.effect.slide = function( o, done ) {
 			done();
 		}
 	});
-};
+});
 
 })(jQuery);

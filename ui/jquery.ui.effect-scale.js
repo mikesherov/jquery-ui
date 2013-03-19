@@ -13,21 +13,21 @@
  */
 (function( $, undefined ) {
 
-$.effects.effect.puff = function( o, done ) {
+$.effects.define( "puff", function( o, done ) {
 	var options = {
 		fade: true,
 		percent: parseInt( o.percent, 10 ) || 150
 	};
 
 	$.effects.effect.scale.call( this, options, done );
-};
+});
 
-$.effects.effect.scale = function( o, done ) {
+$.effects.define( "scale", function( o, done ) {
 
 	// Create element
 	var temp,
 		el = $( this ),
-		mode = $.effects.mode( el ),
+		mode = o.mode,
 
 		// this copies the "scale" option, which is normalized in $.effects.effect.size
 		// and the "fade" option, which isn't documented, but supports $.effects.effect.puff
@@ -73,9 +73,9 @@ $.effects.effect.scale = function( o, done ) {
 	}
 
 	$.effects.effect.size.call( this, options, done );
-};
+});
 
-$.effects.effect.size = function( o, done ) {
+$.effects.define( "size", function( o, done ) {
 
 	// Create element
 	var baseline, factor,
@@ -87,7 +87,7 @@ $.effects.effect.size = function( o, done ) {
 		hProps = [ "borderLeftWidth", "borderRightWidth", "paddingLeft", "paddingRight" ],
 
 		// Set options
-		mode = $.effects.mode( el ),
+		mode = o.mode,
 		restore = o.restore || mode !== "effect",
 		scale = o.scale || "both",
 		origin = o.origin || [ "top", "left" ],
@@ -267,6 +267,6 @@ $.effects.effect.size = function( o, done ) {
 		}
 	});
 
-};
+});
 
 })(jQuery);

@@ -13,12 +13,12 @@
  */
 (function( $, undefined ) {
 
-$.effects.effect.bounce = function( o, done ) {
+$.effects.define( "bounce", function( o, done ) {
 	var upAnim, downAnim,
 		el = $( this ),
 
 		// defaults:
-		mode = $.effects.mode( el ),
+		mode = o.mode,
 		hide = mode === "hide",
 		show = mode === "show",
 		direction = o.direction || "up",
@@ -101,6 +101,6 @@ $.effects.effect.bounce = function( o, done ) {
 	}
 	el.dequeue();
 
-};
+});
 
 })(jQuery);

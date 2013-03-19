@@ -13,13 +13,11 @@
  */
 (function( $, undefined ) {
 
-$.effects.defaultMode.fold = "hide";
-
-$.effects.effect.fold = function( o, done ) {
+$.effects.define( "fold", "hide", function( o, done ) {
 
 	// Create element
 	var el = $( this ),
-		mode = $.effects.mode( el ),
+		mode = o.mode,
 		show = mode === "show",
 		hide = mode === "hide",
 		size = o.size || 15,
@@ -77,6 +75,6 @@ $.effects.effect.fold = function( o, done ) {
 			[ 1, 0 ].concat( queue.splice( queuelen, 3 ) ) );
 	}
 	el.dequeue();
-};
+});
 
 })(jQuery);

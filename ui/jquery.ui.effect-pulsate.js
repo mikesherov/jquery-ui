@@ -13,11 +13,9 @@
  */
 (function( $, undefined ) {
 
-$.effects.defaultMode.pulsate = "show";
-
-$.effects.effect.pulsate = function( o, done ) {
+$.effects.define( "pulsate", "show", function( o, done ) {
 	var elem = $( this ),
-		mode = $.effects.mode( elem ),
+		mode = o.mode,
 		show = mode === "show",
 		hide = mode === "hide",
 		showhide = ( show || hide ),
@@ -61,6 +59,6 @@ $.effects.effect.pulsate = function( o, done ) {
 			[ 1, 0 ].concat( queue.splice( queuelen, anims + 1 ) ) );
 	}
 	elem.dequeue();
-};
+});
 
 })(jQuery);

@@ -13,7 +13,7 @@
  */
 (function( $, undefined ) {
 
-$.effects.effect.shake = function( o, done ) {
+$.effects.define( "shake", function( o, done ) {
 
 	var i = 1,
 		el = $( this ),
@@ -51,7 +51,7 @@ $.effects.effect.shake = function( o, done ) {
 
 			$.effects.removePlaceholder( placeholder, el );
 
-			if ( $.effects.mode( el ) === "hide" ) {
+			if ( o.mode === "hide" ) {
 				el.hide();
 			}
 
@@ -65,6 +65,6 @@ $.effects.effect.shake = function( o, done ) {
 	}
 	el.dequeue();
 
-};
+});
 
 })(jQuery);

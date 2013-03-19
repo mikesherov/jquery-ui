@@ -13,12 +13,10 @@
  */
 (function( $, undefined ) {
 
-$.effects.defaultMode.drop = "hide";
-
-$.effects.effect.drop = function( o, done ) {
+$.effects.define( "drop", "hide", function( o, done ) {
 
 	var el = $( this ),
-		mode = $.effects.mode( el ),
+		mode = o.mode,
 		show = mode === "show",
 		direction = o.direction || "left",
 		ref = ( direction === "up" || direction === "down" ) ? "top" : "left",
@@ -56,6 +54,6 @@ $.effects.effect.drop = function( o, done ) {
 			done();
 		}
 	});
-};
+});
 
 })(jQuery);
